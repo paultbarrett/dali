@@ -1,0 +1,97 @@
+.program dali_tx
+.side_set 1 opt
+
+.wrap_target
+    ; FIFO-Wort 1: Anzahl der Datenbits
+    pull       block          ; Warte auf das erste FIFO-Wort
+    mov   x, osr              ; Anzahl der zu sendenden Bits in X
+    jmp   x--, dummy         ; Subtrahiere 1 von X (x = osr - 1)
+dummy:
+
+    ; FIFO-Wort 2: Bitdaten (LSB zuerst)
+    pull       block          ; Warte auf das Bitmuster (OSR enthält nun die Bitdaten)
+    mov   y, osr              ; Anzahl der zu sendenden Bits in X
+
+    ; Startbit
+    nop          side 1 [5]
+    nop          side 0 [2]
+
+bit_loop:
+    out   y, 1
+    jmp   y--, bit1
+    jmp   bit0
+
+bit0:
+    nop          side 0 [5]
+    jmp next_bit side 1 [1]
+
+bit1:
+    nop
+    nop          side 1 [5]
+    jmp next_bit side 0 [1]
+
+next_bit:
+    jmp   x--, bit_loop
+    nop [2]
+
+    ; Stopbits
+    nop          side 0 [5]
+    nop          side 0 [5]
+    nop          side 0 [5]
+    nop          side 0 [5]
+.wrap
+
+% c-sdk {
+static inline void dali_tx_program_init(PIO pio, uint sm, uint offset, uint pin) {
+    pio_gpio_init(pio, pin);
+    pio_sm_config c = dali_tx_program_get_default_config(offset);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, true);
+    sm_config_set_sideset_pins(&c, pin);
+    sm_config_set_clkdiv(&c, (clock_get_hz(clk_sys) / 1000000) * 416.67 / 6);
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+%}
+
+.program dali_rx
+.side_set 1 opt
+
+.wrap_target
+start:
+    set x, 4 ; side 0
+    wait 1 pin, 0
+    irq set 0 rel
+loop:
+    in pins, 1 ; side 1
+    nop side 0
+    jmp pin, high ; side 1
+    jmp low
+high:
+  set x, 4
+low:
+  nop [2]
+  jmp x--, loop
+  push noblock
+.wrap
+
+% c-sdk {
+static inline void dali_rx_program_init(PIO pio, uint sm, uint offset, uint pin) {
+    // pio_gpio_init(pio, 18);
+    pio_gpio_init(pio, pin);
+    pio_sm_config c = dali_rx_program_get_default_config(offset);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, false);
+    // pio_sm_set_consecutive_pindirs(pio, sm, 18, 1, true);
+    sm_config_set_in_pins(&c, pin);
+    sm_config_set_in_pin_base(&c, pin);
+    sm_config_set_in_pin_count(&c, 1);
+    sm_config_set_jmp_pin(&c, pin);
+    sm_config_set_clkdiv(&c, (clock_get_hz(clk_sys) / 1000000) * 416.67 / 8 );
+    // sm_config_set_sideset_pins(&c, 18);
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+    sm_config_set_in_shift(&c, false, true, 2);
+    // sm_config_set_set_pin_base(&c, 18);
+    sm_config_set_set_pin_count(&c, 1);
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+%}
