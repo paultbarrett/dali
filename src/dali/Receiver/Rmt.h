@@ -32,7 +32,7 @@ static const rmt_symbol_word_t DALI_SYMBOL_STOP = {
 namespace Dali
 {
     class DataLinkLayer;
-    
+
     namespace Receiver
     {
 
@@ -51,7 +51,6 @@ namespace Dali
             static void interrupt(void *pvParameters);
             static void task(void *pvParameters);
             static bool callback(rmt_channel_handle_t channel, const rmt_rx_done_event_data_t *edata, void *user_data);
-            void startReceiving();
             void stopReceiving(rmt_rx_done_event_data_t data);
             QueueHandle_t getQueueHandle();
         };

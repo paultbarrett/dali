@@ -11,21 +11,24 @@ namespace Dali
     {
         class Base
         {
-            DataLinkLayer *_dll;
+            friend class DataLinkLayer;
 
           protected:
             uint _pin;
-            bool _busy = false;
+            bool _receiving = false;
             unsigned long _lastTime = 0;
+            DataLinkLayer *_dll;
 
+            void startReceiving();
+            void expireReceiving();
             void receivedFrame(Frame frame);
 
           public:
             Base(DataLinkLayer *dll, uint pin) : _dll(dll), _pin(pin) {}
-            bool busy();
-            void busy(bool busy);
-            void processBusyExpire();
+            bool receiving();
+            unsigned long lastReceiving();
             virtual void process();
+            uint pin() { return _pin; };
         };
     } // namespace Receiver
 

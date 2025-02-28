@@ -61,3 +61,13 @@ void onDaliResponse(Dali::Frame txFrame, Dali::Frame rxFrame)
     printf("  Response: 0x%08X (S: %u - F: %u) -> TX: 0x%08X (S: %u - F: %u)\n", rxFrame.data, rxFrame.size, rxFrame.flags, txFrame.data, txFrame.size, txFrame.flags);
 }
 ```
+
+### Notice & Todos
+
+Functions such as merging forward frames with backward frames would ideally belong to the network layer. For practical reasons, the current implementation does not separate these two layers, meaning the data link layer is not a pure data link layer. If the need arises in the future, the separation can be revisited.
+
+At present, only the RMT and PIO implementations are available. In theory, a software-based transmitter and an interrupt-based receiver could also be developed. However, since the existing solutions meet the current requirements, these alternatives have not been implemented. Pull requests are, however, very welcome.
+
+Additionally, there is currently no application layer to generate DALI frames and process the responses.
+
+ 

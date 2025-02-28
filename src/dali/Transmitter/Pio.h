@@ -11,8 +11,8 @@ namespace Dali
             uint _sm;
 
           public:
-            Pio(uint pin);
-            void transmit(Frame frame) override;
+            Pio(Dali::DataLinkLayer *dll, uint pin);
+            void transmitFrame(Frame frame) override;
         };
     } // namespace Transmitter
 } // namespace Dali

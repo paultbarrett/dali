@@ -24,22 +24,22 @@ namespace Dali
         Transmitter::Base *_txTransmitter = nullptr;
         Receiver::Base *_rxReceiver = nullptr;
 
-        unsigned long _rxLastTime = 0;
-        unsigned long _txLastTime = 0;
         bool _nextResponse = false;
-        bool _isTransmitting = false;
+        unsigned long _nextResponseTimer = 0;
+
         bool _hack = false;
 
         void processReceive();
         void processTransmit();
+        void receivedFrame(Frame frame);
 
       public:
-        void addTransmitFrame(Frame frame);
-        void receivedFrame(Frame frame);
+        bool transmitFrame(Frame frame);
         void init(uint tx, uint rx);
         void process();
         void registerMonitor(std::function<void(Frame)> callback);
         void registerResponse(std::function<void(Frame, Frame)> callback);
+        bool receiving();
     };
 
 }; // namespace Dali

@@ -18,6 +18,7 @@ namespace Dali
             {
                 uint32_t data = pio_sm_get(DaliPioManager.pio(), _sm);
                 if (bufferIndex == 0 && !data) continue; // skip leading zeros from previous frame
+                // Serial.printf("Rx<%u>: %u: Data: %u\n", _pin, micros(), data);
                 buffer[bufferIndex++] = data & 0b11;
                 _zeros = (data == 0 ? _zeros - 1 : 2);
             }
@@ -73,8 +74,6 @@ namespace Dali
 
                 bufferIndex = 0;
                 receivedFrame(frame);
-
-                busy(false);
             }
 
             Base::process();
@@ -82,7 +81,7 @@ namespace Dali
 
         void Pio::interrupt()
         {
-            busy(true);
+            startReceiving();
         }
     } // namespace Pio
 } // namespace Dali

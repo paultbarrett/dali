@@ -60,11 +60,6 @@ namespace Dali
             receiver->startReceiving();
         }
 
-        void Rmt::startReceiving()
-        {
-            busy(true);
-        }
-
         QueueHandle_t Rmt::getQueueHandle()
         {
             return _queueHandle;
@@ -159,8 +154,6 @@ namespace Dali
             }
 
             receivedFrame(frame);
-
-            busy(false);
         }
 
     } // namespace Receiver

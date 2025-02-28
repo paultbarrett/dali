@@ -15,19 +15,32 @@ uint32_t lasttx = 0;
 
 void onDaliFrame1(Dali::Frame frame)
 {
-    printf("  Monitor1: 0x%08X (S: %u - F: %u)\n", frame.data, frame.size, frame.flags);
+    printf("Monitor1: 0x%08X (S: %u - F: %u)\n", frame.data, frame.size, frame.flags);
 }
 void onDaliResponse1(Dali::Frame txFrame, Dali::Frame rxFrame)
 {
-    printf("  Response1: 0x%08X (S: %u - F: %u) -> TX: 0x%08X (S: %u - F: %u)\n", rxFrame.data, rxFrame.size, rxFrame.flags, txFrame.data, txFrame.size, txFrame.flags);
+    printf("Response1: 0x%08X (S: %u - F: %u) -> TX: 0x%08X (S: %u - F: %u)\n", rxFrame.data, rxFrame.size, rxFrame.flags, txFrame.data, txFrame.size, txFrame.flags);
 }
 void onDaliFrame2(Dali::Frame frame)
 {
-    printf("  Monitor2: 0x%08X (S: %u - F: %u)\n", frame.data, frame.size, frame.flags);
+    printf("Monitor2: 0x%08X (S: %u - F: %u)\n", frame.data, frame.size, frame.flags);
+    // if (!(frame.flags & 0b00000100))
+    // {
+    //     printf("Generate2\n");
+    //     Dali::Frame txFrame;
+    //     txFrame.flags = DALI_FRAME_BACKWARD;
+    //     txFrame.data = frame.data & 0x000000FF;
+    //     txFrame.size = 8;
+    //     dll2.transmitFrame(txFrame);
+    // }
+    // else
+    // {
+    //     printf("No Generate2\n");
+    // }
 }
 void onDaliResponse2(Dali::Frame txFrame, Dali::Frame rxFrame)
 {
-    printf("  Response2: 0x%08X (S: %u - F: %u) -> TX: 0x%08X (S: %u - F: %u)\n", rxFrame.data, rxFrame.size, rxFrame.flags, txFrame.data, txFrame.size, txFrame.flags);
+    printf("Response2: 0x%08X (S: %u - F: %u) -> TX: 0x%08X (S: %u - F: %u)\n", rxFrame.data, rxFrame.size, rxFrame.flags, txFrame.data, txFrame.size, txFrame.flags);
 }
 
 void setup()
@@ -41,7 +54,6 @@ void setup()
 #endif
 #ifdef ARDUINO_ARCH_RP2040
     dll1.init(17, 16);
-    dll2.init(27, 26);
 #endif
     dll2.registerMonitor(onDaliFrame2);
     dll2.registerResponse(onDaliResponse2);
@@ -53,26 +65,49 @@ uint32_t t = 0;
 void loop()
 {
     dll1.process();
-    dll2.process();
+   // dll2.process();
 
-    if (millis() - t > 5000)
+    // if (millis() - t > 5000)
+    // {
+    //     printf("loop\n");
+    //     t = millis();
+    // }
+    if (millis() - lasttx > 3000)
     {
-        printf("loop\n");
-        t = millis();
-    }
-    if (millis() - lasttx > 1000)
-    {
-        // printf("Send test frames\n");
+        printf("\n\nSend test frames\n\n");
         lasttx = millis();
         Dali::Frame txFrame;
         txFrame.flags = DALI_FRAME_FORWARD;
-        // txFrame.data = micros();
-        txFrame.data = 0xFFFFFFFF; // & 0b00000000000000000000001111111111;
-        txFrame.data = 0xAABB;     // & 0b00000000000000000000001111111111;
+        txFrame.data = micros() & 0x0000FFFF;
         txFrame.size = 16;
-        dll1.addTransmitFrame(txFrame);
-        // txFrame.data = 0xFFFFFFFF; // & 0b00000000000000000000001111111111;
-        // txFrame.size = 32;
-        // dll2.addTransmitFrame(txFrame);
+        dll1.transmitFrame(txFrame);
+        txFrame.data = (micros() + 1) & 0x0000FFFF;
+        txFrame.size = 16;
+        dll1.transmitFrame(txFrame);
+        txFrame.data = (micros() + 1) & 0x0000FFFF;
+        txFrame.size = 16;
+        dll1.transmitFrame(txFrame);
+        txFrame.data = (micros() + 1) & 0x0000FFFF;
+        txFrame.size = 16;
+        dll1.transmitFrame(txFrame);
+        txFrame.data = (micros() + 1) & 0x0000FFFF;
+        txFrame.size = 16;
+        dll1.transmitFrame(txFrame);
+        txFrame.data = (micros() + 1) & 0x0000FFFF;
+        txFrame.size = 16;
+        dll1.transmitFrame(txFrame);
+        // txFrame.data = 0x3030;
+        // txFrame.size = 16;
+        // dll1.transmitFrame(txFrame);
     }
+}
+
+void setup1() {
+    delay(100);
+    printf("Setup1\n");
+    dll2.init(17, 26);
+}
+
+void loop1() {
+    dll2.process();
 }

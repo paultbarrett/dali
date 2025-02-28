@@ -6,7 +6,7 @@ namespace Dali
 {
     namespace Transmitter
     {
-        Rmt::Rmt(uint pin) : Base(pin)
+        Rmt::Rmt(DataLinkLayer *dll, uint pin) : Base(dll, pin)
         {
             _channelConfig = {
                 .gpio_num = (gpio_num_t)_pin,
@@ -25,7 +25,7 @@ namespace Dali
             ESP_ERROR_CHECK(rmt_enable(_channelHandle));
         }
 
-        void Rmt::transmit(Frame frame)
+        void Rmt::transmitFrame(Frame frame)
         {
             // Manchester-codierte Symbole erstellen
             size_t fullbits = frame.size + 1 + 2;
@@ -39,6 +39,8 @@ namespace Dali
 
             // Symbole senden
             ESP_ERROR_CHECK(rmt_transmit(_channelHandle, copy_encoder, symbols, sizeof(symbols), &_transmitConfig));
+
+            transmitting(true);
         }
 
         void Rmt::encode(Frame frame, rmt_symbol_word_t *symbols)

@@ -6,13 +6,13 @@ namespace Dali
 {
     namespace Transmitter
     {
-        Pio::Pio(uint pin) : Base(pin)
+        Pio::Pio(DataLinkLayer *dll, uint pin) : Base(dll, pin)
         {
             _sm = DaliPioManager.txStateMachine();
             dali_tx_program_init(DaliPioManager.pio(), _sm, DaliPioManager.txProgramOffset(), pin);
         }
 
-        void Pio::transmit(Frame frame)
+        void Pio::transmitFrame(Frame frame)
         {
             // Serial.printf("Transmit: 0x%08X S: %u\n", frame.data, frame.size);
             while (!pio_sm_is_tx_fifo_empty(DaliPioManager.pio(), _sm))
@@ -29,6 +29,7 @@ namespace Dali
 
             pio_sm_put(DaliPioManager.pio(), _sm, frame.size);
             pio_sm_put(DaliPioManager.pio(), _sm, reversed);
+            transmitting(true);
         }
     } // namespace Transmitter
 } // namespace Dali
