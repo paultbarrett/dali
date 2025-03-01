@@ -14,14 +14,8 @@ namespace Dali
 
         void Pio::process()
         {
-            while (!pio_sm_is_rx_fifo_empty(DaliPioManager.pio(), _sm))
-            {
-                uint32_t data = pio_sm_get(DaliPioManager.pio(), _sm);
-                if (bufferIndex == 0 && !data) continue; // skip leading zeros from previous frame
-                // Serial.printf("Rx<%u>: %u: Data: %u\n", _pin, micros(), data);
-                buffer[bufferIndex++] = data & 0b11;
-                _zeros = (data == 0 ? _zeros - 1 : 2);
-            }
+            _lockInterrupt = true;
+            readBuffer();
 
             if (!_zeros)
             {
@@ -77,12 +71,29 @@ namespace Dali
             }
 
             Base::process();
+            _lockInterrupt = false;
         }
 
         void Pio::interrupt()
         {
-            startReceiving();
+            if (_lockInterrupt) return;
+
+            readBuffer();
         }
-    } // namespace Pio
+
+        void Pio::readBuffer()
+        {
+            while (!pio_sm_is_rx_fifo_empty(DaliPioManager.pio(), _sm))
+            {
+                uint32_t data = pio_sm_get(DaliPioManager.pio(), _sm);
+                if (bufferIndex == 0 && !data) continue; // skip leading zeros from previous frame
+                buffer[bufferIndex++] = data & 0b11;
+
+                _zeros = (data == 0 ? (_zeros == 0 ? 0 : _zeros - 1) : 2);
+                // Serial.printf("Rx<%u>: %u: Data: %u --%u\n", _pin, micros(), data, _zeros);
+                startReceiving();
+            }
+        }
+    } // namespace Receiver
 } // namespace Dali
 #endif

@@ -24,22 +24,23 @@ namespace Dali
             if (micros() - _lastTime < DALI_TE_TO_US(90)) return;
 
             _receiving = false;
-            // Serial.printf("%u: Expire Receiving \n", micros());
+            Serial.printf("Rx<%u>: %u: Expire Receiving \n", _pin, micros());
         }
 
         void Base::receivedFrame(Frame frame)
         {
             _lastTime = micros();
             _receiving = false;
-            // Serial.printf("Rx<%u>: %u: Receiving complete: %u \n", _pin, micros(), _receiving);
+            //Serial.printf("Rx<%u>: %u: Receiving complete: %u \n", _pin, micros(), _receiving);
             _dll->receivedFrame(frame);
         }
 
         void Base::startReceiving()
         {
-            _receiving = true;
             _lastTime = micros();
-            // Serial.printf("Rx<%u>: %u: Start Receiving \n", _pin, micros());
+            if (_receiving) return;
+            _receiving = true;
+            //Serial.printf("Rx<%u>: %u: Start Receiving \n", _pin, micros());
         }
 
         unsigned long Base::lastReceiving()

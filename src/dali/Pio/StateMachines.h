@@ -76,14 +76,14 @@ static inline void dali_tx_program_init(PIO pio, uint sm, uint offset, uint pin)
 
 static const uint16_t dali_rx_program_instructions[] = {
             //     .wrap_target
-    0xe024, //  0: set    x, 4                       
+    0xe025, //  0: set    x, 5                       
     0x20a0, //  1: wait   1 pin, 0                   
     0xc010, //  2: irq    nowait 0 rel               
     0x4001, //  3: in     pins, 1                    
-    0xb042, //  4: nop                    side 0     
+    0xd010, //  4: irq    nowait 0 rel    side 0     
     0x00c7, //  5: jmp    pin, 7                     
     0x0008, //  6: jmp    8                          
-    0xe024, //  7: set    x, 4                       
+    0xe025, //  7: set    x, 5                       
     0xa242, //  8: nop                           [2] 
     0x0043, //  9: jmp    x--, 3                     
     0x8000, // 10: push   noblock                    

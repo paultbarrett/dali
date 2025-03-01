@@ -54,6 +54,7 @@ void setup()
 #endif
 #ifdef ARDUINO_ARCH_RP2040
     dll1.init(17, 16);
+    dll2.init(17, 26);
 #endif
     dll2.registerMonitor(onDaliFrame2);
     dll2.registerResponse(onDaliResponse2);
@@ -65,7 +66,7 @@ uint32_t t = 0;
 void loop()
 {
     dll1.process();
-   // dll2.process();
+    dll2.process();
 
     // if (millis() - t > 5000)
     // {
@@ -100,14 +101,4 @@ void loop()
         // txFrame.size = 16;
         // dll1.transmitFrame(txFrame);
     }
-}
-
-void setup1() {
-    delay(100);
-    printf("Setup1\n");
-    dll2.init(17, 26);
-}
-
-void loop1() {
-    dll2.process();
 }

@@ -12,10 +12,13 @@ namespace Dali
         class Pio : public Base
         {
             uint _sm;
-            char buffer[DALI_RX_BITS];
-            size_t _zeros = 2;
-            size_t bufferIndex = 0;
+            volatile char buffer[DALI_RX_BITS];
+            volatile size_t _zeros = 2;
+            volatile size_t bufferIndex = 0;
             Frame _frame;
+            bool _lockInterrupt = false;
+
+            void readBuffer();
 
           public:
             Pio(Dali::DataLinkLayer *dll, uint pin);

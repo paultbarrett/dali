@@ -58,16 +58,16 @@ static inline void dali_tx_program_init(PIO pio, uint sm, uint offset, uint pin)
 
 .wrap_target
 start:
-    set x, 4 ; side 0
+    set x, 5 ; side 0
     wait 1 pin, 0
     irq set 0 rel
 loop:
     in pins, 1 ; side 1
-    nop side 0
+    irq set 0 rel side 0
     jmp pin, high ; side 1
     jmp low
 high:
-  set x, 4
+  set x, 5
 low:
   nop [2]
   jmp x--, loop
