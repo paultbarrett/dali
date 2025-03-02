@@ -60,6 +60,10 @@ namespace Dali
         // Regardless of the message received, the transmission is always terminated afterward.
         _txTransmitter->transmitting(false);
 
+        // Touch activity time
+        _activityTime = millis();
+
+        // enqueue the received frame
         _rxQueue.push(frame);
     };
 
@@ -156,5 +160,15 @@ namespace Dali
     size_t DataLinkLayer::receiveQueueSize()
     {
         return _rxQueue.size();
+    }
+
+    unsigned long &DataLinkLayer::activityTime()
+    {
+        return _activityTime;
+    }
+
+    bool DataLinkLayer::connected()
+    {
+        return _rxReceiver->connected();
     }
 }; // namespace Dali

@@ -25,6 +25,7 @@ namespace Dali
 
         bool _nextResponse = false;
         unsigned long _nextResponseTimer = 0;
+        unsigned long _activityTime = 0;
 
         bool _hack = false;
 
@@ -40,6 +41,8 @@ namespace Dali
         bool receiving();
         bool transmitting();
         bool busy();
+        unsigned long &activityTime();
+        bool connected();
         size_t transmitQueueSize();
         size_t receiveQueueSize();
 

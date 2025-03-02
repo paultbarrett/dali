@@ -54,5 +54,11 @@ namespace Dali
         {
             return _lastTime;
         }
+
+        // TODO
+        bool Base::connected()
+        {
+            return true;
+        }
     } // namespace Receiver
 } // namespace Dali

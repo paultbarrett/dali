@@ -29,6 +29,7 @@ namespace Dali
             unsigned long lastReceiving();
             virtual void process();
             uint pin() { return _pin; };
+            virtual bool connected();
         };
     } // namespace Receiver
 
