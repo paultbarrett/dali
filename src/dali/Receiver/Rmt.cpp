@@ -12,13 +12,12 @@ namespace Dali
                 .gpio_num = (gpio_num_t)pin,
                 .clk_src = RMT_CLK_SRC_DEFAULT,
                 .resolution_hz = DALI_RMT_RESOLUTION_HZ,
-                .mem_block_symbols = DALI_RX_BITS // amount of RMT symbols that the channel can store at a time
-            };
+                .mem_block_symbols = DALI_RX_BITS, // amount of RMT symbols that the channel can store at a time
+                .flags = {.invert_in = true}};
 
             _receiveConfig = (rmt_receive_config_t){
                 .signal_range_min_ns = 1000,
-                .signal_range_max_ns = 430000
-            };
+                .signal_range_max_ns = 900000};
 
             rmt_rx_event_callbacks_t callback = {
                 .on_recv_done = Rmt::callback,
