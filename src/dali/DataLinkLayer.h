@@ -40,6 +40,11 @@ namespace Dali
         void registerMonitor(std::function<void(Frame)> callback);
         void registerResponse(std::function<void(Frame, Frame)> callback);
         bool receiving();
+        bool transmitting();
+        bool busy();
+        size_t transmitQueueSize();
+        size_t receiveQueueSize();
+
     };
 
 }; // namespace Dali

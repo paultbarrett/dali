@@ -145,4 +145,24 @@ namespace Dali
     {
         return _rxReceiver->receiving();
     }
+
+    bool DataLinkLayer::transmitting()
+    {
+        return _txTransmitter->transmitting();
+    }
+
+    bool DataLinkLayer::busy()
+    {
+        return _txQueue.size() > 0 || _txTransmitter->transmitting() || _rxReceiver->receiving();
+    }
+
+    size_t DataLinkLayer::transmitQueueSize()
+    {
+        return _txQueue.size();
+    }
+
+    size_t DataLinkLayer::receiveQueueSize()
+    {
+        return _rxQueue.size();
+    }
 }; // namespace Dali
