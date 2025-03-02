@@ -30,6 +30,7 @@ namespace Dali
             if (_startReceiving <= _nextResponseTimer)
             {
                 frame.flags |= DALI_FRAME_BACKWARD;
+                frame.ref = _txFrame.ref;
                 _nextResponse = false;
             }
             _nextResponse = false;
@@ -41,6 +42,7 @@ namespace Dali
             {
                 frame.flags |= _txFrame.flags;  // apply flags from txFrame
                 frame.flags |= DALI_FRAME_ECHO; // apply echo
+                frame.ref = _txFrame.ref;       // apply ref
                 _nextResponse = true;           // wait for possible response
                 _nextResponseTimer = micros() + DALI_TE_TO_US(22);
                 // if (frame.flags & DALI_FRAME_FORWARD) _hack = true;
