@@ -11,5 +11,6 @@ namespace Dali
         unsigned long data = 0;
         unsigned char size = 0; // in bits
         unsigned char flags = 0;
+        unsigned long timestamp = 0;
     };
 }; // namespace Dali

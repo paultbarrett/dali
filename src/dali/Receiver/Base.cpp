@@ -35,6 +35,8 @@ namespace Dali
             asm volatile("" ::: "memory");
             _receiving = false;
             // Serial.printf("Rx<%u>: %u: Receiving complete: %u \n", _pin, micros(), _receiving);
+
+            frame.timestamp = _lastTime;
             _dll->receivedFrame(frame);
         }
 
