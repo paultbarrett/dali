@@ -14,7 +14,7 @@ namespace Dali
     bool DataLinkLayer::transmitFrame(Frame frame)
     {
         if (frame.size > 32) return false;
-
+        frame.timestamp = micros();
         _txQueue.push(frame);
         return true;
     };
