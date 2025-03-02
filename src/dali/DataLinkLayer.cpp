@@ -97,9 +97,6 @@ namespace Dali
 
         for (std::function<void(Frame)> &callback : _callbackMonitors)
             callback(rxFrame);
-
-        if (_txFrame.flags & DALI_FRAME_FORWARD && rxFrame.flags & DALI_FRAME_BACKWARD && rxFrame.flags != DALI_FRAME_ERROR)
-            _callbackResponse(_txFrame, rxFrame);
     }
 
     void DataLinkLayer::processTransmit()
@@ -134,11 +131,6 @@ namespace Dali
     void DataLinkLayer::registerMonitor(std::function<void(Frame)> callback)
     {
         _callbackMonitors.push_back(callback);
-    }
-
-    void DataLinkLayer::registerResponse(std::function<void(Frame, Frame)> callback)
-    {
-        _callbackResponse = callback;
     }
 
     bool DataLinkLayer::receiving()

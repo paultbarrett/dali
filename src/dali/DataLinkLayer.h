@@ -14,7 +14,6 @@ namespace Dali
         friend class Receiver::Base;
 
         std::vector<std::function<void(Frame)>> _callbackMonitors;
-        std::function<void(Frame, Frame)> _callbackResponse;
 
         std::queue<Frame> _txQueue;
         std::queue<Frame> _rxQueue;
@@ -38,7 +37,6 @@ namespace Dali
         void init(uint tx, uint rx);
         void process();
         void registerMonitor(std::function<void(Frame)> callback);
-        void registerResponse(std::function<void(Frame, Frame)> callback);
         bool receiving();
         bool transmitting();
         bool busy();
