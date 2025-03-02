@@ -47,7 +47,7 @@ namespace Dali
             }
             else
             {
-                Serial.printf("Rx<%u>: %u: Frame collision %08X %08X\n", _txTransmitter->pin(), micros(), _txFrame.data, frame.data);
+                // Serial.printf("Rx<%u>: %u: Frame collision %08X %08X\n", _txTransmitter->pin(), micros(), _txFrame.data, frame.data);
             }
         }
 
@@ -87,7 +87,7 @@ namespace Dali
         Frame rxFrame = _rxQueue.front();
         _rxQueue.pop();
 
-        Serial.printf("Rx<%u>: %u: Frame 0x%08X (S: %u - F: %u)\n", _rxReceiver->pin(), micros(), rxFrame.data, rxFrame.size, rxFrame.flags);
+        // Serial.printf("Rx<%u>: %u: Frame 0x%08X (S: %u - F: %u)\n", _rxReceiver->pin(), micros(), rxFrame.data, rxFrame.size, rxFrame.flags);
 
         for (std::function<void(Frame)> &callback : _callbackMonitors)
             callback(rxFrame);
@@ -120,7 +120,7 @@ namespace Dali
         _txFrame = txFrame;
         _txQueue.pop();
 
-        Serial.printf("Tx<%u>: %u: Frame 0x%08X (S: %u - F: %u)\n", _txTransmitter->pin(), micros(), _txFrame.data, _txFrame.size, _txFrame.flags);
+        // Serial.printf("Tx<%u>: %u: Frame 0x%08X (S: %u - F: %u)\n", _txTransmitter->pin(), micros(), _txFrame.data, _txFrame.size, _txFrame.flags);
         _txTransmitter->transmitFrame(_txFrame);
         _nextResponse = false;
     }

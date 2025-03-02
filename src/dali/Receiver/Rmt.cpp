@@ -6,17 +6,18 @@ namespace Dali
     {
         Rmt::Rmt(DataLinkLayer *dll, uint pin) : Base(dll, pin)
         {
+            // digitalWrite(8, HIGH);
             sprintf(_taskName, "%s%d", "dalirmtrx", pin);
             _channelConfig = (rmt_rx_channel_config_t){
                 .gpio_num = (gpio_num_t)pin,
                 .clk_src = RMT_CLK_SRC_DEFAULT,
                 .resolution_hz = DALI_RMT_RESOLUTION_HZ,
-                .mem_block_symbols = DALI_RX_BITS, // amount of RMT symbols that the channel can store at a time
-                .flags = {.invert_in = true}};
+                .mem_block_symbols = DALI_RX_BITS // amount of RMT symbols that the channel can store at a time
+            };
 
             _receiveConfig = (rmt_receive_config_t){
-                .signal_range_min_ns = DALI_USTONS(2),
-                .signal_range_max_ns = DALI_USTONS(DALI_TE * 2),
+                .signal_range_min_ns = 1000,
+                .signal_range_max_ns = 430000
             };
 
             rmt_rx_event_callbacks_t callback = {
@@ -48,6 +49,7 @@ namespace Dali
 
         bool Rmt::callback(rmt_channel_handle_t channel, const rmt_rx_done_event_data_t *edata, void *user_data)
         {
+
             BaseType_t high_task_wakeup = pdFALSE;
             QueueHandle_t _queueHandle = (QueueHandle_t)user_data;
             xQueueSendFromISR(_queueHandle, edata, &high_task_wakeup);
@@ -57,6 +59,7 @@ namespace Dali
         void Rmt::interrupt(void *pvParameters)
         {
             Rmt *receiver = static_cast<Rmt *>(pvParameters);
+            // digitalWrite(8, LOW);
             receiver->startReceiving();
         }
 
@@ -157,7 +160,9 @@ namespace Dali
                 frame.data = 0;
                 frame.flags = DALI_FRAME_ERROR;
             }
-
+            // digitalWrite(8, LOW);
+            // Serial.printf("Rx<%u>: %u: Frame done\n", pin(), micros());
+            _lastTime = micros();
             receivedFrame(frame);
         }
 
