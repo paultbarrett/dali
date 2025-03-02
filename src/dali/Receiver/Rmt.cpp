@@ -16,7 +16,7 @@ namespace Dali
 
             _receiveConfig = (rmt_receive_config_t){
                 .signal_range_min_ns = DALI_USTONS(2),
-                .signal_range_max_ns = DALI_USTONS(DALI_TE * 5),
+                .signal_range_max_ns = DALI_USTONS(DALI_TE * 2),
             };
 
             rmt_rx_event_callbacks_t callback = {
@@ -72,19 +72,24 @@ namespace Dali
 
             while (true)
             {
-                if (xQueueReceive(receiver->getQueueHandle(), &data, pdMS_TO_TICKS(10)) == pdPASS)
+                if (xQueueReceive(receiver->getQueueHandle(), &data, portMAX_DELAY) == pdPASS)
                 {
                     receiver->stopReceiving(data);
                 }
                 vTaskDelay(1);
             }
-            vTaskDelete(NULL);
         }
 
         void Rmt::stopReceiving(rmt_rx_done_event_data_t data)
         {
             // restart receiving
             rmt_receive(_channelHandle, _symbols, sizeof(_symbols), &_receiveConfig);
+
+            // printf("Found\n");
+            // for (size_t i = 0; i < data.num_symbols; i++)
+            // {
+            //     printf(" - %u: %u (%u) %u (%u)\n", i, data.received_symbols[i].duration0, data.received_symbols[i].level0, data.received_symbols[i].duration1, data.received_symbols[i].level1);
+            // }
 
             Frame frame;
 

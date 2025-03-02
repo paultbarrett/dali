@@ -39,9 +39,9 @@ namespace Dali
         {
             if (_txFrame.data == frame.data && _txFrame.size == frame.size)
             {
-                frame.flags |= _txFrame.flags; // apply flags from txFrame
-                frame.flags |= 0b00000100; // apply echo
-                _nextResponse = true;          // wait for possible response
+                frame.flags |= _txFrame.flags;  // apply flags from txFrame
+                frame.flags |= DALI_FRAME_ECHO; // apply echo
+                _nextResponse = true;           // wait for possible response
                 _nextResponseTimer = micros() + DALI_TE_TO_US(22);
                 // if (frame.flags & DALI_FRAME_FORWARD) _hack = true;
             }
@@ -104,12 +104,12 @@ namespace Dali
         if (_rxReceiver->receiving()) return;
 
         Frame txFrame = _txQueue.front();
-        const unsigned long diff = (micros())-_rxReceiver->lastReceiving() - 2;
+        const unsigned long diff = (micros())-_rxReceiver->lastReceiving();
         if (txFrame.flags & DALI_FRAME_BACKWARD)
         {
-            // backward frames should send after 7TE
-            if (diff < DALI_TE_TO_US(7)) return;
-            // Serial.printf("%u: Check Backward ok (%u)\n", _txTransmitter->pin(), diff);
+            // backward frames should send after TE4 (stopbits prevoise frame) + 3TE additional pause
+            if (diff < DALI_TE_TO_US(3)) return;
+            // Serial.printf("Tx<%u>: %u: Check Backward ok (%u)\n", _txTransmitter->pin(), micros(), diff);
         }
         else
         {
