@@ -50,6 +50,10 @@ namespace Dali
             else
             {
                 // Serial.printf("Rx<%u>: %u: Frame collision %08X %08X\n", _txTransmitter->pin(), micros(), _txFrame.data, frame.data);
+                frame.flags |= DALI_FRAME_COLLISION | DALI_FRAME_ERROR;
+                frame.ref = _txFrame.ref;
+                frame.data = 0;
+                frame.size = 0;
             }
         }
 
