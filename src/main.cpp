@@ -56,7 +56,7 @@ void setup()
 #endif
 #ifdef ARDUINO_ARCH_RP2040
     m1.init(17, 16);
-    m2.init(17, 26);
+    m2.init(26, 18);
 #endif
     m1.registerMonitor(onDaliFrame1);
     m2.registerMonitor(onDaliFrame2);
