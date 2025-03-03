@@ -47,8 +47,9 @@ void onDaliFrame2(Dali::Frame frame)
 void setup()
 {
     // pinMode(8, OUTPUT);
+    // neue zeile
     Serial.begin(115200);
-    delay(1000);
+    delay(5000);
     printf("Setup\n");
 #ifdef ARDUINO_ARCH_ESP32
     m1.init(7, 20);
@@ -73,6 +74,16 @@ void loop()
     m1.process();
     m2.process();
 
+    // if(millis() - last > 6000)
+    // {
+    //     Dali::Frame txFrame;
+    //     txFrame.flags = DALI_FRAME_FORWARD;
+    //     txFrame.data = 0x000000FF;
+    //     txFrame.size = 8;
+    //     m1.sendCommand(0, Dali::Command::OFF, false, true);
+    //     last = millis();
+    // }
+
     if(state == 0)
     {
         // we send a query level here
@@ -96,7 +107,7 @@ void loop()
     } else if(state == 2)
     {
         // just delay it for 1s
-        if(millis() - last > 1000)
+        if(millis() - last > 4000)
         {
             addr++;
             if(addr > 63)
