@@ -27,8 +27,6 @@ namespace Dali
         unsigned long _nextResponseTimer = 0;
         unsigned long _activityTime = 0;
 
-        bool _hack = false;
-
         void processReceive();
         void processTransmit();
         void receivedFrame(Frame frame);

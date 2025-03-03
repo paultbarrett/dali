@@ -45,7 +45,6 @@ namespace Dali
                 frame.ref = _txFrame.ref;       // apply ref
                 _nextResponse = true;           // wait for possible response
                 _nextResponseTimer = micros() + DALI_TE_TO_US(22);
-                // if (frame.flags & DALI_FRAME_FORWARD) _hack = true;
             }
             else
             {

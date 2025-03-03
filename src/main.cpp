@@ -52,7 +52,7 @@ void setup()
     printf("Setup\n");
 #ifdef ARDUINO_ARCH_ESP32
     dll1.init(7, 20);
-    // dll2.init(14, 13);
+    dll2.init(14, 13);
 #endif
 #ifdef ARDUINO_ARCH_RP2040
     dll1.init(17, 16);
@@ -79,14 +79,15 @@ void loop()
         // printf("\n\nSend test frames\n\n");
         Dali::Frame txFrame;
         txFrame.flags = DALI_FRAME_FORWARD;
+        txFrame.ref = micros();
         txFrame.data = 0x000010FF;
         txFrame.size = 16;
-        txFrame.ref = 44;
         dll1.transmitFrame(txFrame);
         for (size_t i = 0; i < 3; i++)
         {
             txFrame.data = 0x000000A0 + i;
             txFrame.size = 8;
+            txFrame.ref = micros();
             dll1.transmitFrame(txFrame);
         }
 
