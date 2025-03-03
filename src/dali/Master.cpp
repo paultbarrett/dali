@@ -83,18 +83,22 @@ namespace Dali
 
     void Master::receivedFrame(Frame frame)
     {
-        printf("Received frame %u\n", frame.ref);
+        printf("Received frame %u (%i)\n", frame.ref, _responses.size());
         for(auto &r : _responses)
         {
+            printf("Check response %u\n", r.ref);
             if(r.ref == frame.ref)
             {
+                printf("Match response (F: %u)\n", frame.flags);
                 if(frame.flags & DALI_FRAME_BACKWARD)
                 {
+                    printf("Response received\n");
                     r.frame = frame;
                     r.state = ResponseState::RECEIVED;
                 }
                 else
                 {
+                    printf("Received our forward frame");
                     r.state = ResponseState::SENT;
                     r.sent = frame.timestamp;
                 }
@@ -122,10 +126,10 @@ namespace Dali
         printf("Send command %u\n", frame.ref);
         if(response)
         {
-            printf("Register response %u\n", frame.ref);
             Response r;
             r.ref = frame.ref;
             _responses.push_back(r);
+            printf("Register response %u (%i)\n", frame.ref, _responses.size());
         }
 
         _dll.transmitFrame(frame);
