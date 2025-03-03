@@ -83,6 +83,7 @@ namespace Dali
 
     void Master::receivedFrame(Frame frame)
     {
+        ESP_LOGI("DALI", "Received frame %u", frame.ref);
         for(auto &r : _responses)
         {
             if(r.ref == frame.ref)
@@ -120,6 +121,7 @@ namespace Dali
 
         if(response)
         {
+            ESP_LOGI("DALI", "Register response %u", frame.ref);
             Response r;
             r.ref = frame.ref;
             _responses.push_back(r);
@@ -131,8 +133,6 @@ namespace Dali
 
     uint32_t Master::sendSpecialCommand(uint8_t command, uint8_t value, bool response)
     {
-        command = command & 0x0F;
-        command |= 1 << 5;
         Frame frame;
         frame.data = prepareCommand16(false, command, true, value);
         frame.flags = DALI_FRAME_FORWARD;
