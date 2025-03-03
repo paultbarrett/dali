@@ -63,30 +63,47 @@ void setup()
     printf("Setup done\n");
 }
 
-uint32_t t = 0;
-uint8_t arc = 0;
+uint32_t last = 0;
+uint8_t addr = 0;
+uint8_t state = 0; // 0 = query; 1 = waiting, 2 = delay
+uint32_t ref = 0;
+
 void loop()
 {
     m1.process();
     m2.process();
 
-    if (millis() - lasttx > 2000)
+    if(state == 0)
     {
-        lasttx = millis();
-        if(arc == 0)
-            arc = 0xFE;
-        else
-            arc = 0;
-        // printf("\n\nSend test frames\n\n");
-        
-        for (size_t i = 0; i < 3; i++)
+        // we send a query level here
+        printf("Query level A%i\n", addr);
+        ref = m1.sendCommand(addr, Dali::QUERY_ACTUAL_LEVEL, false, true);
+        state = 1;
+    } else if(state == 1)
+    {
+        Dali::Response r = m1.getResponse(ref);
+        if(r.state == Dali::ResponseState::RECEIVED)
         {
-            m1.sendArc(i, arc);
+            printf("Response A%i: %u (F: %u)\n", addr, r.frame.data & 0xFF, r.frame.flags);
+            state = 2;
+            last = millis();
+        } else if(r.state == Dali::ResponseState::NO_ANSWER)
+        {
+            printf("Response A%i: none\n", addr);
+            state = 2;
+            last = millis();
         }
-
-        for (size_t i = 0; i < 3; i++)
+    } else if(state == 2)
+    {
+        // just delay it for 1s
+        if(millis() - last > 1000)
         {
-            m2.sendArc(i, arc);
+            addr++;
+            if(addr > 63)
+            {
+                addr = 0;
+            }
+            state = 0;
         }
     }
 }
