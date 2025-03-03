@@ -5,16 +5,100 @@ namespace Dali
     void Master::init(uint tx, uint rx)
     {
         _dll.init(tx, rx);
+        _dll.registerMonitor([this](Frame frame) { this->receivedFrame(frame); });
     }
 
     void Master::process()
     {
         _dll.process();
+
+        for(auto &r : _responses)
+        {
+            if(r.state == ResponseState::SENT && ((micros() - r.sent) > 10000))
+            {
+                ESP_LOGW("DALI", "Response %u no answer", r.ref);
+                r.state = ResponseState::NO_ANSWER;
+            }
+
+            if((r.state == ResponseState::NO_ANSWER || r.state == ResponseState::RECEIVED)
+                 && ((micros() - r.sent) > 60000))
+            {
+                // We got a response but no one cares...
+                ESP_LOGW("DALI", "Response %u not handled", r.ref);
+                removeResponse(r.ref);
+            }
+
+            if(r.state == ResponseState::WAITING && ((micros() - r.ref) > 30000))
+            {
+                // It seems we did not send it...
+                // TODO handle it
+                ESP_LOGW("DALI", "Response not sent", r.ref);
+                removeResponse(r.ref);
+            }
+        }
+    }
+
+    void Master::removeResponse(uint32_t ref)
+    {
+        uint32_t index = getResponseIndex(ref);
+        if(index != -1)
+        {
+            _responses.erase(_responses.begin() + index);
+        }
+    }
+
+    uint32_t Master::getResponseIndex(uint32_t ref)
+    {
+        for(size_t i = 0; i < _responses.size(); i++)
+        {
+            if(_responses[i].ref == ref)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    Response Master::getResponse(uint32_t ref)
+    {
+        for(auto &r : _responses)
+        {
+            if(r.ref == ref)
+            {
+                removeResponse(ref);
+                return r;
+            }
+        }
+
+        Response r;
+        r.state = ResponseState::NOT_REGISTERED;
+        return r;
     }
 
     void Master::registerMonitor(std::function<void(Frame)> callback)
     {
         _dll.registerMonitor(callback);
+    }
+
+    void Master::receivedFrame(Frame frame)
+    {
+        for(auto &r : _responses)
+        {
+            if(r.ref == frame.ref)
+            {
+                if(frame.flags & DALI_FRAME_BACKWARD)
+                {
+                    r.frame = frame;
+                    r.state = ResponseState::RECEIVED;
+                }
+                else
+                {
+                    r.state = ResponseState::SENT;
+                    r.sent = frame.timestamp;
+                }
+            }
+        }
     }
 
     void Master::sendArc(uint8_t address, uint8_t value, bool isGroup)
@@ -33,6 +117,14 @@ namespace Dali
         frame.flags = DALI_FRAME_FORWARD;
         frame.size = 16;
         frame.ref = micros();
+
+        if(response)
+        {
+            Response r;
+            r.ref = frame.ref;
+            _responses.push_back(r);
+        }
+
         _dll.transmitFrame(frame);
         return frame.ref;
     }
@@ -45,6 +137,21 @@ namespace Dali
         frame.data = prepareCommand16(false, command, true, value);
         frame.flags = DALI_FRAME_FORWARD;
         frame.size = 16;
+        frame.ref = micros();
+
+        if(response)
+        {
+            Response r;
+            r.ref = frame.ref;
+            _responses.push_back(r);
+        }
+
+        _dll.transmitFrame(frame);
+        return frame.ref;
+    }
+
+    uint32_t Master::sendRaw(Frame frame)
+    {
         frame.ref = micros();
         _dll.transmitFrame(frame);
         return frame.ref;
