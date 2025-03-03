@@ -52,16 +52,17 @@ void setup()
     printf("Setup\n");
 #ifdef ARDUINO_ARCH_ESP32
     m1.init(7, 20);
-    m2.init(14, 13);
+    m2.init(5, 8);
 #endif
 #ifdef ARDUINO_ARCH_RP2040
     m1.init(17, 16);
     m2.init(17, 26);
 #endif
-    m1.registerMonitor(onDaliFrame2);
-    m2.registerMonitor(onDaliFrame1);
+    m1.registerMonitor(onDaliFrame1);
+    m2.registerMonitor(onDaliFrame2);
     printf("Setup done\n");
 }
+
 uint32_t t = 0;
 uint8_t arc = 0;
 void loop()
@@ -81,6 +82,11 @@ void loop()
         for (size_t i = 0; i < 3; i++)
         {
             m1.sendArc(i, arc);
+        }
+
+        for (size_t i = 0; i < 3; i++)
+        {
+            m2.sendArc(i, arc);
         }
     }
 }
