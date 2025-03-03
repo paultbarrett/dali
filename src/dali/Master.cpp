@@ -14,9 +14,9 @@ namespace Dali
 
         for(auto &r : _responses)
         {
-            if(r.state == ResponseState::SENT && ((micros() - r.sent) > 10000))
+            if(r.state == ResponseState::SENT && ((micros() - r.sent) > 25000))
             {
-                printf("Response %u no answer\n", r.ref);
+                //printf("Response %u no answer\n", r.ref);
                 r.state = ResponseState::NO_ANSWER;
             }
 
@@ -66,7 +66,8 @@ namespace Dali
         {
             if(r.ref == ref)
             {
-                removeResponse(ref);
+                if(r.state == ResponseState::RECEIVED || r.state == ResponseState::NO_ANSWER)
+                    removeResponse(ref);
                 return r;
             }
         }
@@ -83,22 +84,18 @@ namespace Dali
 
     void Master::receivedFrame(Frame frame)
     {
-        printf("Received frame %u (%i)\n", frame.ref, _responses.size());
-        for(auto &r : _responses)
+        printf("Received frame %u (%i)\n", frame.ref, this->_responses.size());
+        for(Response &r : _responses)
         {
-            printf("Check response %u\n", r.ref);
             if(r.ref == frame.ref)
             {
-                printf("Match response (F: %u)\n", frame.flags);
                 if(frame.flags & DALI_FRAME_BACKWARD)
                 {
-                    printf("Response received\n");
                     r.frame = frame;
                     r.state = ResponseState::RECEIVED;
                 }
                 else
                 {
-                    printf("Received our forward frame");
                     r.state = ResponseState::SENT;
                     r.sent = frame.timestamp;
                 }
