@@ -16,7 +16,7 @@ namespace Dali
         {
             if(r.state == ResponseState::SENT && ((micros() - r.sent) > 10000))
             {
-                ESP_LOGW("DALI", "Response %u no answer", r.ref);
+                printf("Response %u no answer\n", r.ref);
                 r.state = ResponseState::NO_ANSWER;
             }
 
@@ -24,7 +24,7 @@ namespace Dali
                  && ((micros() - r.sent) > 60000))
             {
                 // We got a response but no one cares...
-                ESP_LOGW("DALI", "Response %u not handled", r.ref);
+                printf("Response %u not handled\n", r.ref);
                 removeResponse(r.ref);
             }
 
@@ -32,7 +32,7 @@ namespace Dali
             {
                 // It seems we did not send it...
                 // TODO handle it
-                ESP_LOGW("DALI", "Response not sent", r.ref);
+                printf("Response not sent\n", r.ref);
                 removeResponse(r.ref);
             }
         }
@@ -83,7 +83,7 @@ namespace Dali
 
     void Master::receivedFrame(Frame frame)
     {
-        ESP_LOGI("DALI", "Received frame %u", frame.ref);
+        printf("Received frame %u\n", frame.ref);
         for(auto &r : _responses)
         {
             if(r.ref == frame.ref)
@@ -119,9 +119,10 @@ namespace Dali
         frame.size = 16;
         frame.ref = micros();
 
+        printf("Send command %u\n", frame.ref);
         if(response)
         {
-            ESP_LOGI("DALI", "Register response %u", frame.ref);
+            printf("Register response %u\n", frame.ref);
             Response r;
             r.ref = frame.ref;
             _responses.push_back(r);
