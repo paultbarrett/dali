@@ -13,7 +13,9 @@ namespace Dali
                 .clk_src = RMT_CLK_SRC_DEFAULT,
                 .resolution_hz = DALI_RMT_RESOLUTION_HZ,
                 .mem_block_symbols = DALI_RX_BITS, // amount of RMT symbols that the channel can store at a time
-                .flags = {.invert_in = true}};
+                .flags = {
+                    // The inversion is conceptually incorrect and not inverted. However, the used Manchester encoding is inverted and simplifies the evaluation.
+                    .invert_in = true}};
 
             _receiveConfig = (rmt_receive_config_t){
                 .signal_range_min_ns = 1000,
