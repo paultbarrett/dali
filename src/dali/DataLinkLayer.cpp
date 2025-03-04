@@ -111,18 +111,18 @@ namespace Dali
         Frame txFrame = _txQueue.front();
         if (txFrame.flags & DALI_FRAME_BACKWARD)
         {
-            const unsigned long diff = micros() - _lastFrameReceived;
             // Backward frames must be transmitted 7TE after the previous frame (up to a maximum of 21TE after receiving it) and can potentially cause collisions (e.g., in broadcast mode).
             // Therefore, instead of using the last recent timestamp, the timestamp from the previous frame is used. Since a frame already includes 4TE in the form of 2 stop bits, an additional 3TE is sufficient.
+            const unsigned long diff = micros() - _lastFrameReceived;
             if (diff < DALI_TE_TO_US(3)) return;
             // Serial.printf("Tx<%u>: %u: Check Backward ok (%u)\n", _txTransmitter->pin(), micros(), diff);
         }
         else
         {
-            const unsigned long diff = micros() - _rxReceiver->lastReceiving();
             if (_rxReceiver->receiving()) return;
-
+            
             // forward frames should send after 22TE to allow receiving an answer
+            const unsigned long diff = micros() - _rxReceiver->lastReceiving();
             if (diff < DALI_TE_TO_US(22)) return;
             // Serial.printf("%u: Check Forward ok (%u)\n", _txTransmitter->pin(), diff);
         }
