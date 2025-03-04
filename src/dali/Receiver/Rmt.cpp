@@ -31,21 +31,11 @@ namespace Dali
             ESP_ERROR_CHECK(rmt_new_rx_channel(&_channelConfig, &_channelHandle));
             ESP_ERROR_CHECK(rmt_rx_register_event_callbacks(_channelHandle, &callback, _queueHandle));
             ESP_ERROR_CHECK(rmt_enable(_channelHandle));
-            rmt_receive(_channelHandle, _symbols, sizeof(_symbols), &_receiveConfig);
 
-            gpio_config_t io_conf = {};
-            io_conf.intr_type = _channelConfig.flags.invert_in ? GPIO_INTR_POSEDGE : GPIO_INTR_NEGEDGE;
-            io_conf.mode = GPIO_MODE_INPUT;
-            io_conf.pin_bit_mask = BIT64(_channelConfig.gpio_num);
-            io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-            io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
-            // Configure the pin
-            gpio_config(&io_conf);
-            // printf("gpio_config:                     %d (%s)\n", resp, esp_err_to_name(resp));
-            //  Configure the interrupt
-            gpio_install_isr_service(0 /* No flags */); // Call this only once !!
-            // printf("gpio_install_isr_service:        %d (%s)\n", resp, esp_err_to_name(resp));
-            gpio_isr_handler_add(_channelConfig.gpio_num, Rmt::interrupt, this);
+            // Start receiving
+            pinMode(pin, INPUT_PULLUP);
+            rmt_receive(_channelHandle, _symbols, sizeof(_symbols), &_receiveConfig);
+            attachInterruptArg(pin, Rmt::interrupt, this, CHANGE);
         }
 
         bool Rmt::callback(rmt_channel_handle_t channel, const rmt_rx_done_event_data_t *edata, void *user_data)
@@ -61,6 +51,7 @@ namespace Dali
         {
             Rmt *receiver = static_cast<Rmt *>(pvParameters);
             // digitalWrite(8, LOW);
+            // Serial.println("I2");
             receiver->startReceiving();
         }
 

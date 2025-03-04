@@ -47,7 +47,7 @@ namespace Dali
 
             if (_receiving) return;
             _receiving = true;
-            // Serial.printf("Rx<%u>: %u: Start Receiving \n", _pin, micros());
+            Serial.printf("Rx<%u>: %u: Start Receiving \n", _pin, micros());
         }
 
         unsigned long Base::lastReceiving()
