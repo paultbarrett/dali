@@ -152,6 +152,12 @@ namespace Dali
         return frame.ref;
     }
 
+    uint32_t Master::sendExtendedCommand(uint8_t address, uint8_t deviceType, uint8_t command, bool isGroup, bool response)
+    {
+        sendSpecialCommand(SpecialCommand::ENABLE_DT, deviceType, false);
+        return sendCommand(address, command, isGroup, response);
+    }
+
     uint32_t Master::sendRaw(Frame frame)
     {
         frame.ref = micros();
