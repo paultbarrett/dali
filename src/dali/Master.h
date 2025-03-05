@@ -44,6 +44,8 @@ namespace Dali
             uint32_t sendCommand(uint8_t address, uint8_t command, bool isGroup = false, bool response = false);
             /** Send a special command to an evg/group. Returns ref. */
             uint32_t sendSpecialCommand(uint8_t command, uint8_t value = 0x00, bool response = false);
+            /** Send an ExtendedCommand with a EnableDT before */
+            uint32_t sendExtendedCommand(uint8_t address, uint8_t deviceType, uint8_t command, bool isGroup = false, bool response = false);
             /** Send a raw telegram */
             uint32_t sendRaw(Frame frame);
 

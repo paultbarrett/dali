@@ -96,7 +96,7 @@ namespace Dali {
         QUERY_SHORT = 13,
         PHYSICAL_SELECTION = 14,
         // 15 not used
-        ENABLE_DEVICE_TYPE = 16,
+        // 16 not used
         SET_DTR1 = 17,
         SET_DTR2 = 18,
         WRITE_MEMORY_LOCATION = 19,
@@ -284,8 +284,9 @@ namespace Dali {
         QUERY_EXTENDED_VERSION_NUMBER = 255
     };
 
+    // TODO set back to class and see why it doesnt work
     /** DALI Extended Commands for DT8 - Colour */
-    enum class ExtendedCommandDT8 {
+    enum ExtendedCommandDT8 : uint8_t {
         // 0-223 not used
         SET_COORDINATE_X = 224,
         SET_COORDINATE_Y = 225,
@@ -317,7 +318,6 @@ namespace Dali {
         QUERY_COLOUR_RGBWAF_CONTROL = 251,
         QUERY_COLOUR_ASSIGNED_COLOUR = 252,
         // 253-254 not used
-        QUERY_EXTENDED_VERSION_NUMBER = 255
     };
 
     /** DALI Extended Commands for DT15 - Load referencing */
