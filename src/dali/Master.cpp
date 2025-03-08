@@ -16,23 +16,22 @@ namespace Dali
         {
             if(r.state == ResponseState::SENT && ((micros() - r.sent) > 25000))
             {
-                //printf("Response %u no answer\n", r.ref);
                 r.state = ResponseState::NO_ANSWER;
             }
 
             if((r.state == ResponseState::NO_ANSWER || r.state == ResponseState::RECEIVED)
-                 && ((micros() - r.sent) > 60000))
+                 && ((micros() - r.sent) > 100000))
             {
                 // We got a response but no one cares...
-                printf("Response %u not handled\n", r.ref);
+                // printf("Response %u not handled\n", r.ref);
                 removeResponse(r.ref);
             }
 
-            if(r.state == ResponseState::WAITING && ((micros() - r.ref) > 30000))
+            if(r.state == ResponseState::WAITING && ((micros() - r.ref) > 10000000))
             {
                 // It seems we did not send it...
                 // TODO handle it
-                printf("Response not sent\n", r.ref);
+                printf("Frame not sent %i - %i (%i)\n", r.ref, micros(), micros() - r.ref);
                 removeResponse(r.ref);
             }
         }
@@ -84,7 +83,6 @@ namespace Dali
 
     void Master::receivedFrame(Frame frame)
     {
-        printf("Received frame %u (%i)\n", frame.ref, this->_responses.size());
         for(Response &r : _responses)
         {
             if(r.ref == frame.ref)
@@ -120,13 +118,11 @@ namespace Dali
         frame.size = 16;
         frame.ref = micros();
 
-        printf("Send command %u\n", frame.ref);
         if(response)
         {
             Response r;
             r.ref = frame.ref;
             _responses.push_back(r);
-            printf("Register response %u (%i)\n", frame.ref, _responses.size());
         }
 
         _dll.transmitFrame(frame);
@@ -136,10 +132,14 @@ namespace Dali
     uint32_t Master::sendSpecialCommand(uint8_t command, uint8_t value, bool response)
     {
         Frame frame;
-        frame.data = prepareCommand16(false, command, true, value);
+        frame.data = prepareCommand16(true, command, true, value);
         frame.flags = DALI_FRAME_FORWARD;
         frame.size = 16;
         frame.ref = micros();
+        
+        // 00000101 00000000
+        // 10000101 00000000
+        // 10100101 00000000
 
         if(response)
         {
