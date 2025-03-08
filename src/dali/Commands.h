@@ -81,30 +81,28 @@ namespace Dali {
 
     /** DALI special commands */
     enum SpecialCommand {
-        TERMINATE = 0,
-        SET_DTR = 1,
-        INITIALISE = 2,
-        RANDOMISE = 3,
-        COMPARE = 4,
-        WITHDRAW = 5,
-        // 6-7 not used
-        SEARCHADDRH = 8,
-        SEARCHADDRM = 9,
-        SEARCHADDRL = 10,
-        PROGRAMSHORT = 11,
-        VERIFYSHORT = 12,
-        QUERY_SHORT = 13,
-        PHYSICAL_SELECTION = 14,
-        // 15 not used
-        // 16 not used
-        SET_DTR1 = 17,
-        SET_DTR2 = 18,
-        WRITE_MEMORY_LOCATION = 19,
-        WRITE_MEMORY_LOCATION_NOREPLY = 20, // DALI-2
-        // 21-31 not used
-        ENABLE_DT = 32
-        // 33-255 not used
-    };;
+        TERMINATE = 16,
+        SET_DTR = 17,
+        INITIALISE = 18,
+        RANDOMISE = 19,
+        COMPARE = 20,
+        WITHDRAW = 21,
+        // 22-23 not used
+        SEARCHADDRH = 24,
+        SEARCHADDRM = 25,
+        SEARCHADDRL = 26,
+        PROGRAMSHORT = 27,
+        VERIFYSHORT = 28,
+        QUERY_SHORT = 29,
+        PHYSICAL_SELECTION = 30,
+        // 31 not used
+        ENABLE_DT = 32,
+        SET_DTR1 = 33,
+        SET_DTR2 = 34,
+        WRITE_MEMORY_LOCATION = 35,
+        WRITE_MEMORY_LOCATION_NOREPLY = 36, // DALI-2
+        // 37-255 not used
+    };
 
     /** DALI Extended Commands for DT0 -  */
     enum class ExtendedCommandDT0 : uint8_t {
