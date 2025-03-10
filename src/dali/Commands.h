@@ -17,6 +17,7 @@ namespace Dali {
         // 11-15 not used
         GO_TO_SCENE = 16,
         // 17-31 go to scene +1 to +15
+        // <-- Configuration Commands
         DEVICE_RESET = 32,
         ARC_TO_DTR = 33,
         SAVE_VARS = 34,
@@ -38,6 +39,7 @@ namespace Dali {
         REMOVE_FROM_GROUP = 112,
         DTR_AS_SHORT = 128,
         ENABLE_WRITE_MEMORY = 129,
+        // --> Configuration Commands
         // 130-143 not used
         QUERY_STATUS = 144,
         QUERY_CONTROL_GEAR = 145,
