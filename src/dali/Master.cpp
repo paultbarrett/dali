@@ -118,6 +118,13 @@ namespace Dali
         frame.size = 16;
         frame.ref = micros();
 
+        if(command >= 32 && command <= 129)
+        {
+            // This is a configuration command so send it twice
+            _dll.transmitFrame(frame);
+            frame.ref += 1;
+        }
+
         if(response)
         {
             Response r;
@@ -137,9 +144,12 @@ namespace Dali
         frame.size = 16;
         frame.ref = micros();
         
-        // 00000101 00000000
-        // 10000101 00000000
-        // 10100101 00000000
+        if(command == SpecialCommand::INITIALISE || command == SpecialCommand::RANDOMISE)
+        {
+            // This is a configuration command so send it twice
+            _dll.transmitFrame(frame);
+            frame.ref += 1;
+        }
 
         if(response)
         {
