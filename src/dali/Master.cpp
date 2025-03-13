@@ -14,7 +14,7 @@ namespace Dali
 
         for(auto &r : _responses)
         {
-            if(r.state == ResponseState::SENT && ((micros() - r.sent) > 25000))
+            if(r.state == ResponseState::SENT && ((micros() - r.sent) > 50000))
             {
                 r.state = ResponseState::NO_ANSWER;
             }
