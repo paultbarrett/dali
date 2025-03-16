@@ -13,10 +13,7 @@ namespace Dali
                 .clk_src = RMT_CLK_SRC_DEFAULT,
                 .resolution_hz = DALI_RMT_RESOLUTION_HZ,
                 .mem_block_symbols = DALI_RX_BITS, // amount of RMT symbols that the channel can store at a time
-                .intr_priority = 2,
-                .flags = {
-                    // The inversion is conceptually incorrect and not inverted. However, the used Manchester encoding is inverted and simplifies the evaluation.
-                    .invert_in = true}};
+                .intr_priority = 2};
 
             _receiveConfig = (rmt_receive_config_t){
                 .signal_range_min_ns = 100,
@@ -110,8 +107,6 @@ namespace Dali
                 uint8_t count1 = 0;
                 const uint16_t duration0 = data.received_symbols[i].duration0;
                 const uint16_t duration1 = data.received_symbols[i].duration1;
-                const bool level0 = data.received_symbols[i].level0;
-                const bool level1 = data.received_symbols[i].level1;
 
                 // check timing duration0
                 if (duration0 >= DALI_THRESHOLD_1TE_LOW && duration0 <= DALI_THRESHOLD_1TE_HIGH)
@@ -142,7 +137,6 @@ namespace Dali
                     {
                         frame.size++;
                         frame.data <<= 1;
-                        frame.data |= level0;
                     }
                     counter++;
                 }
@@ -153,7 +147,7 @@ namespace Dali
                     {
                         frame.size++;
                         frame.data <<= 1;
-                        frame.data |= level1;
+                        frame.data |= 1;
                     }
                     counter++;
                 }
