@@ -16,7 +16,7 @@ namespace Dali
                 .intr_priority = 2};
 
             _receiveConfig = (rmt_receive_config_t){
-                .signal_range_min_ns = 100,
+                .signal_range_min_ns = 2000,
                 .signal_range_max_ns = (uint32_t)(DALI_TE * 4 * 1000)};
 
             rmt_rx_event_callbacks_t callback = {
@@ -78,60 +78,38 @@ namespace Dali
             // restart receiving
             rmt_receive(_channelHandle, _symbols, sizeof(_symbols), &_receiveConfig);
 
-            // printf("Found: ");
-            // for (size_t i = 0; i < data.num_symbols; i++)
-            // {
-            //     uint highs = round((float)data.received_symbols[i].duration0 / 417);
-            //     uint lows = round((float)data.received_symbols[i].duration1 / 417);
-            //     for (size_t i = 0; i < highs; i++)
-            //     {
-            //         printf("1");
-            //     }
-            //     for (size_t i = 0; i < lows; i++)
-            //     {
-            //         printf("0");
-            //     }
-
-            //     // printf(" - %u: %u (%u) %u (%u)\n", i, data.received_symbols[i].duration0, data.received_symbols[i].level0, data.received_symbols[i].duration1, data.received_symbols[i].level1);
-            // }
-            // printf("\n");
-
             Frame frame;
 
             bool error = false;
-            uint8_t counter = 0;
+            size_t counter = 0;
 
             for (int i = 0; i < data.num_symbols; i++)
             {
-                uint8_t count0 = 0;
-                uint8_t count1 = 0;
-                const uint16_t duration0 = data.received_symbols[i].duration0;
-                const uint16_t duration1 = data.received_symbols[i].duration1;
+                size_t highs = round((float)data.received_symbols[i].duration0 / 417);
+                size_t lows = round((float)data.received_symbols[i].duration1 / 417);
 
-                // check timing duration0
-                if (duration0 >= DALI_THRESHOLD_1TE_LOW && duration0 <= DALI_THRESHOLD_1TE_HIGH)
-                    count0 = 1;
-                else if (duration0 >= DALI_THRESHOLD_2TE_LOW && duration0 <= DALI_THRESHOLD_2TE_HIGH)
-                    count0 = 2;
-                else
-                    error = true;
+                // special for bit (stop bits)
+                if (data.received_symbols[i].duration1 == 0) lows = 1;
 
-                // check timing duration1
-                if (duration1 == 0)
-                    count1 = 1;
-                else if (duration1 >= DALI_THRESHOLD_1TE_LOW && duration1 <= DALI_THRESHOLD_1TE_HIGH)
-                    count1 = 1;
-                else if (duration1 >= DALI_THRESHOLD_2TE_LOW && duration1 <= DALI_THRESHOLD_2TE_HIGH)
-                    count1 = 2;
-                else
-                    error = true;
+                // start bit must be 1
+                if (i == 0 && highs != 1) error = true;
 
-                if (i == 0 && count0 != 1) // start bit must be 1
-                    error = true;
+                // menchester coding allows only 1 or 2 halbits are same
+                if (highs < 1 || highs > 2) error = true;
+                if (lows < 1 || lows > 2) error = true;
 
-                if (error) break;
+                // skip on error
+                if (error)
+                {
+                    printf("Error (%u)\n", counter);
+                    for (size_t i = 0; i < data.num_symbols; i++)
+                    {
+                        printf(" - %u: %u (%u) %u (%u)\n", i, data.received_symbols[i].duration0, data.received_symbols[i].level0, data.received_symbols[i].duration1, data.received_symbols[i].level1);
+                    }
+                    break;
+                }
 
-                for (int j = 0; j < count0; j++)
+                for (int j = 0; j < highs; j++)
                 {
                     if (counter > 1 && counter % 2)
                     {
@@ -141,7 +119,7 @@ namespace Dali
                     counter++;
                 }
 
-                for (int j = 0; j < count1; j++)
+                for (int j = 0; j < lows; j++)
                 {
                     if (counter > 1 && counter % 2)
                     {
