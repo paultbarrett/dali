@@ -1,8 +1,8 @@
 #include "Arduino.h"
-#include "Dali/DataLinkLayer.h"
+#include "Dali/Master.h"
 
-Dali::DataLinkLayer dll1;
-Dali::DataLinkLayer dll2;
+Dali::Master m1;
+Dali::Master m2;
 
 uint32_t inttime = 0;
 uint8_t tdata;
@@ -47,64 +47,74 @@ void onDaliFrame2(Dali::Frame frame)
 void setup()
 {
     // pinMode(8, OUTPUT);
+    // neue zeile
     Serial.begin(115200);
-    delay(1000);
+    delay(5000);
     printf("Setup\n");
 #ifdef ARDUINO_ARCH_ESP32
-    dll1.init(7, 20);
-    dll2.init(14, 13);
+    m1.init(7, 20);
+    m2.init(5, 8);
 #endif
 #ifdef ARDUINO_ARCH_RP2040
-    dll1.init(17, 16);
-    dll2.init(17, 26);
+    m1.init(17, 16);
+    m2.init(26, 18);
 #endif
-    dll2.registerMonitor(onDaliFrame2);
-    dll1.registerMonitor(onDaliFrame1);
+    m1.registerMonitor(onDaliFrame1);
+    m2.registerMonitor(onDaliFrame2);
     printf("Setup done\n");
 }
-uint32_t t = 0;
+
+uint32_t last = 0;
+uint8_t addr = 0;
+uint8_t state = 0; // 0 = query; 1 = waiting, 2 = delay
+uint32_t ref = 0;
+
 void loop()
 {
-    dll1.process();
-    dll2.process();
+    m1.process();
+    m2.process();
 
-    // if (millis() - t > 5000)
+    // if(millis() - last > 6000)
     // {
-    //     printf("loop\n");
-    //     t = millis();
+    //     Dali::Frame txFrame;
+    //     txFrame.flags = DALI_FRAME_FORWARD;
+    //     txFrame.data = 0x000000FF;
+    //     txFrame.size = 8;
+    //     m1.sendCommand(0, Dali::Command::OFF, false, true);
+    //     last = millis();
     // }
-    if (millis() - lasttx > 2000)
-    {
-        lasttx = millis();
-        // printf("\n\nSend test frames\n\n");
-        Dali::Frame txFrame;
-        txFrame.flags = DALI_FRAME_FORWARD;
-        txFrame.ref = micros();
-        txFrame.data = 0x000010FF;
-        txFrame.size = 16;
-        dll1.transmitFrame(txFrame);
-        for (size_t i = 0; i < 3; i++)
-        {
-            txFrame.data = 0x000000A0 + i;
-            txFrame.size = 8;
-            txFrame.ref = micros();
-            dll1.transmitFrame(txFrame);
-        }
 
-        // txFrame.data = (micros() + 1) & 0x0000FFFF;
-        // txFrame.size = 16;
-        // dll1.transmitFrame(txFrame);
-        // txFrame.data = (micros() + 1) & 0x0000FFFF;
-        // txFrame.size = 16;
-        // dll1.transmitFrame(txFrame);
-        // txFrame.data = (micros() + 1) & 0x0000FFFF;
-        // txFrame.size = 16;
-        // dll1.transmitFrame(txFrame);
-        // txFrame.data = (micros() + 1) & 0x0000FFFF;
-        // txFrame.size = 16;
-        // dll1.transmitFrame(txFrame);
-        // txFrame.data = 0x3030;
-        // txFrame.size = 16;
-        // dll1.transmitFrame(txFrame);
+    if(state == 0)
+    {
+        // we send a query level here
+        printf("Query level A%i\n", addr);
+        ref = m1.sendCommand(addr, Dali::QUERY_ACTUAL_LEVEL, false, true);
+        state = 1;
+    } else if(state == 1)
+    {
+        Dali::Response r = m1.getResponse(ref);
+        if(r.state == Dali::ResponseState::RECEIVED)
+        {
+            printf("Response A%i: %u (F: %u)\n", addr, r.frame.data & 0xFF, r.frame.flags);
+            state = 2;
+            last = millis();
+        } else if(r.state == Dali::ResponseState::NO_ANSWER)
+        {
+            printf("Response A%i: none\n", addr);
+            state = 2;
+            last = millis();
+        }
+    } else if(state == 2)
+    {
+        // just delay it for 1s
+        if(millis() - last > 4000)
+        {
+            addr++;
+            if(addr > 63)
+            {
+                addr = 0;
+            }
+            state = 0;
+        }
     }
 }
