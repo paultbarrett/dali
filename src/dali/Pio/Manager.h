@@ -37,7 +37,7 @@ namespace Dali
             uint txProgramOffset();
             int rxStateMachine();
             int txStateMachine();
-            std::function<void()> __not_in_flash_func(interruptHandler(uint idx));
+            inline std::function<void()> interruptHandler(uint idx);
             void setInterruptHandler(int index, std::function<void()> handler);
             static void __not_in_flash_func(interrupt)();
         };
