@@ -13,7 +13,8 @@ namespace Dali
                 .clk_src = RMT_CLK_SRC_DEFAULT,
                 .resolution_hz = DALI_RMT_RESOLUTION_HZ,
                 .mem_block_symbols = DALI_RX_BITS, // amount of RMT symbols that the channel can store at a time
-                .intr_priority = 2};
+                //.intr_priority = 2
+            };
 
             _receiveConfig = (rmt_receive_config_t){
                 .signal_range_min_ns = 2000,
