@@ -26,7 +26,8 @@ namespace Dali
 
             _queueHandle = xQueueCreate(1, sizeof(rmt_rx_done_event_data_t));
 
-            xTaskCreate(Rmt::task, _taskName, 4096, this, 0, &_taskHandle);
+            xTaskCreatePinnedToCore(Rmt::task, _taskName, 4096, this, 0, &_taskHandle,1); // Pin to core 1 due to network contention issues
+            //xTaskCreate(Rmt::task, _taskName, 4096, this, 0, &_taskHandle);
             ESP_ERROR_CHECK(rmt_new_rx_channel(&_channelConfig, &_channelHandle));
             ESP_ERROR_CHECK(rmt_rx_register_event_callbacks(_channelHandle, &callback, _queueHandle));
             ESP_ERROR_CHECK(rmt_enable(_channelHandle));
