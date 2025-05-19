@@ -1,12 +1,8 @@
 #ifdef ARDUINO_ARCH_ESP32
 #include "Dali/Receiver/Rmt.h"
+#include "Dali/defines.h"
 #include <Arduino.h>
 #include <esp32-hal-log.h>
-
-// Core selection constants
-#define CORE_0    (0)
-#define CORE_1    (1)
-#define RMT_CORE  CORE_1   // Force RMT to run on core 1
 
 // Define ESP-IDF interrupt flags if they're not already defined
 #ifndef ESP_INTR_FLAG_LEVEL1
