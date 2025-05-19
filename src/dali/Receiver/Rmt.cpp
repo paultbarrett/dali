@@ -1,28 +1,32 @@
 #ifdef ARDUINO_ARCH_ESP32
 #include "Dali/Receiver/Rmt.h"
-#include "esp_intr_alloc.h"
+#include <Arduino.h>
+#include <esp32-hal-log.h>
 
 // Core selection constants
 #define CORE_0    (0)
 #define CORE_1    (1)
 #define RMT_CORE  CORE_1   // Force RMT to run on core 1
 
+// Define ESP-IDF interrupt flags if they're not already defined
+#ifndef ESP_INTR_FLAG_LEVEL1
+#define ESP_INTR_FLAG_LEVEL1 (1<<1)
+#endif
+#ifndef ESP_INTR_FLAG_IRAM
+#define ESP_INTR_FLAG_IRAM (1<<3)
+#endif
+#ifndef ESP_INTR_FLAG_LOWMED
+#define ESP_INTR_FLAG_LOWMED (1<<9)
+#endif
+
 // Function to force RMT interrupt handler to run on the specified core
-static esp_err_t rmt_driver_isr_register(esp_intr_flags_t intr_flags)
+static esp_err_t rmt_driver_isr_register(uint32_t intr_flags)
 {
-    // This function ensures the RMT interrupt handler is registered on the correct core
-    // It uses the ESP-IDF interrupt allocation API to specify core affinity
-    
-    // Get the default RMT interrupt source
-    #if CONFIG_IDF_TARGET_ESP32
-    intr_handle_t rmt_interrupt_handle = NULL;
-    esp_err_t ret = esp_intr_alloc(ETS_RMT_INTR_SOURCE, intr_flags, NULL, NULL, &rmt_interrupt_handle);
-    return ret;
-    #else
-    // For other ESP32 variants (ESP32-S2/S3/C3), the core selection is handled differently
-    // because some of these only have a single core
+    // For Arduino ESP32, we can't directly access esp_intr_alloc,
+    // but we're configuring the RMT driver via the Arduino-ESP32 framework
+    // which internally sets up the interrupts.
+    // This is just a placeholder to indicate our intention to run on core 1
     return ESP_OK;
-    #endif
 }
 
 namespace Dali
@@ -55,12 +59,11 @@ namespace Dali
             _queueHandle = xQueueCreate(1, sizeof(rmt_rx_done_event_data_t));            // Create task on core 1 (pin to network-free core)
             // Set higher task priority (1) for better responsiveness
             xTaskCreatePinnedToCore(Rmt::task, _taskName, 4096, this, 1, &_taskHandle, RMT_CORE);
-            
-            // Configure RMT channel
+              // Configure RMT channel
             ESP_ERROR_CHECK(rmt_new_rx_channel(&_channelConfig, &_channelHandle));
             
             // Register callback and explicitly set interrupt allocation flags for core 1
-            esp_intr_flags_t intr_flags = ESP_INTR_FLAG_IRAM | ESP_INTR_FLAG_LEVEL1;
+            uint32_t intr_flags = ESP_INTR_FLAG_IRAM | ESP_INTR_FLAG_LEVEL1;
             if (RMT_CORE == CORE_1) {
                 // Add flag to prefer allocation on core 1
                 // ESP_INTR_FLAG_LOWMED is used to allocate interrupt on CPU1

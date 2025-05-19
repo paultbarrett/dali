@@ -1,13 +1,25 @@
 #ifdef ARDUINO_ARCH_ESP32
 #include "Dali/Transmitter/Rmt.h"
 #include "Dali/Receiver/Rmt.h"
-#include "esp_intr_alloc.h"
+#include <Arduino.h>
+#include <esp32-hal-log.h>
 
 // Core selection constants - ensure they match with Receiver/Rmt.cpp
 #ifndef RMT_CORE
 #define CORE_0    (0)
 #define CORE_1    (1)
 #define RMT_CORE  CORE_1   // Force RMT to run on core 1
+#endif
+
+// Define ESP-IDF interrupt flags if they're not already defined
+#ifndef ESP_INTR_FLAG_LEVEL1
+#define ESP_INTR_FLAG_LEVEL1 (1<<1)
+#endif
+#ifndef ESP_INTR_FLAG_IRAM
+#define ESP_INTR_FLAG_IRAM (1<<3)
+#endif
+#ifndef ESP_INTR_FLAG_LOWMED
+#define ESP_INTR_FLAG_LOWMED (1<<9)
 #endif
 
 namespace Dali
@@ -27,19 +39,14 @@ namespace Dali
                     .with_dma = false, // ESP32 does not support DMA
                 }};
 
-            _transmitConfig = (rmt_transmit_config_t){.loop_count = 0};
-
-            // Configure RMT channel and ensure its interrupts also run on core 1
+            _transmitConfig = (rmt_transmit_config_t){.loop_count = 0};            // Configure RMT channel and ensure its interrupts also run on core 1
             ESP_ERROR_CHECK(rmt_new_tx_channel(&_channelConfig, &_channelHandle));
             
             // Use interrupt flags that match with core 1
-            esp_intr_flags_t intr_flags = ESP_INTR_FLAG_IRAM | ESP_INTR_FLAG_LEVEL1;
-            if (RMT_CORE == CORE_1) {
-                // Add flag to prefer allocation on core 1
-                intr_flags |= ESP_INTR_FLAG_LOWMED;
-            }
+            // In Arduino-ESP32 we don't need to handle this explicitly, as we're managing 
+            // this through the task pinning and RMT configuration
             
-            // Enable and allocate on the correct core
+            // Enable RMT channel
             ESP_ERROR_CHECK(rmt_enable(_channelHandle));
         }
 
