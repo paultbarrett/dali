@@ -2,6 +2,7 @@
 #ifdef ARDUINO_ARCH_ESP32
 #include "Dali/Transmitter/Base.h"
 #include "Dali/defines.h"
+#include "Dali/Rmt_Symbols.h"
 #include "driver/rmt_tx.h"
 
 namespace Dali

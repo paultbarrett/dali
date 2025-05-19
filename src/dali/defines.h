@@ -11,3 +11,6 @@
 #ifndef RMT_CORE
 #define RMT_CORE  CORE_1   // Default: Force RMT to run on core 1
 #endif
+
+// Conversion from TE (in microseconds) to the number of RMT symbols
+#define DALI_TE_TO_RMT(x) ((uint16_t)((x) * (DALI_RMT_RESOLUTION_HZ / 1000000.0)))

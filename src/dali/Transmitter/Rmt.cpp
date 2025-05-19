@@ -1,6 +1,7 @@
 #ifdef ARDUINO_ARCH_ESP32
 #include "Dali/Transmitter/Rmt.h"
 #include "Dali/defines.h"
+#include "Dali/Rmt_Symbols.h"
 #include <Arduino.h>
 #include <esp32-hal-log.h>
 
