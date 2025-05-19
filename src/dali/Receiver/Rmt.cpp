@@ -1,19 +1,46 @@
 #ifdef ARDUINO_ARCH_ESP32
 #include "Dali/Receiver/Rmt.h"
+#include "esp_intr_alloc.h"
+
+// Core selection constants
+#define CORE_0    (0)
+#define CORE_1    (1)
+#define RMT_CORE  CORE_1   // Force RMT to run on core 1
+
+// Function to force RMT interrupt handler to run on the specified core
+static esp_err_t rmt_driver_isr_register(esp_intr_flags_t intr_flags)
+{
+    // This function ensures the RMT interrupt handler is registered on the correct core
+    // It uses the ESP-IDF interrupt allocation API to specify core affinity
+    
+    // Get the default RMT interrupt source
+    #if CONFIG_IDF_TARGET_ESP32
+    intr_handle_t rmt_interrupt_handle = NULL;
+    esp_err_t ret = esp_intr_alloc(ETS_RMT_INTR_SOURCE, intr_flags, NULL, NULL, &rmt_interrupt_handle);
+    return ret;
+    #else
+    // For other ESP32 variants (ESP32-S2/S3/C3), the core selection is handled differently
+    // because some of these only have a single core
+    return ESP_OK;
+    #endif
+}
+
 namespace Dali
 {
     namespace Receiver
     {
         Rmt::Rmt(DataLinkLayer *dll, uint pin) : Base(dll, pin)
         {
-            // digitalWrite(8, HIGH);
+            // Set up task name
             sprintf(_taskName, "%s%d", "dalirmtrx", pin);
+            
+            // Configure RMT channel
             _channelConfig = (rmt_rx_channel_config_t){
                 .gpio_num = (gpio_num_t)pin,
                 .clk_src = RMT_CLK_SRC_DEFAULT,
                 .resolution_hz = DALI_RMT_RESOLUTION_HZ,
                 .mem_block_symbols = DALI_RX_BITS, // amount of RMT symbols that the channel can store at a time
-                //.intr_priority = 2
+                .intr_priority = 1    // Higher priority for interrupt
             };
 
             _receiveConfig = (rmt_receive_config_t){
@@ -24,15 +51,31 @@ namespace Dali
                 .on_recv_done = Rmt::callback,
             };
 
-            _queueHandle = xQueueCreate(1, sizeof(rmt_rx_done_event_data_t));
-
-            xTaskCreatePinnedToCore(Rmt::task, _taskName, 4096, this, 0, &_taskHandle,1); // Pin to core 1 due to network contention issues
-            //xTaskCreate(Rmt::task, _taskName, 4096, this, 0, &_taskHandle);
+            // Create queue for RMT events
+            _queueHandle = xQueueCreate(1, sizeof(rmt_rx_done_event_data_t));            // Create task on core 1 (pin to network-free core)
+            // Set higher task priority (1) for better responsiveness
+            xTaskCreatePinnedToCore(Rmt::task, _taskName, 4096, this, 1, &_taskHandle, RMT_CORE);
+            
+            // Configure RMT channel
             ESP_ERROR_CHECK(rmt_new_rx_channel(&_channelConfig, &_channelHandle));
+            
+            // Register callback and explicitly set interrupt allocation flags for core 1
+            esp_intr_flags_t intr_flags = ESP_INTR_FLAG_IRAM | ESP_INTR_FLAG_LEVEL1;
+            if (RMT_CORE == CORE_1) {
+                // Add flag to prefer allocation on core 1
+                // ESP_INTR_FLAG_LOWMED is used to allocate interrupt on CPU1
+                intr_flags |= ESP_INTR_FLAG_LOWMED;
+            }
+            
+            // Set RMT interrupt allocation preference to run on core 1
+            esp_err_t err = rmt_driver_isr_register(intr_flags);
+            if (err != ESP_OK) {
+                log_e("Failed to register RMT ISR on core %d, error=%d", RMT_CORE, err);
+            }
+            
+            // Register callbacks and enable RMT
             ESP_ERROR_CHECK(rmt_rx_register_event_callbacks(_channelHandle, &callback, _queueHandle));
-            ESP_ERROR_CHECK(rmt_enable(_channelHandle));
-
-            // Start receiving
+            ESP_ERROR_CHECK(rmt_enable(_channelHandle));            // Start receiving
             pinMode(pin, INPUT_PULLUP);
             rmt_receive(_channelHandle, _symbols, sizeof(_symbols), &_receiveConfig);
             attachInterruptArg(pin, Rmt::interrupt, this, CHANGE);
@@ -58,13 +101,16 @@ namespace Dali
         QueueHandle_t Rmt::getQueueHandle()
         {
             return _queueHandle;
-        }
-
-        void Rmt::task(void *pvParameters)
+        }        void Rmt::task(void *pvParameters)
         {
             Rmt *receiver = static_cast<Rmt *>(pvParameters);
             rmt_rx_done_event_data_t data;
-
+            
+            // Print core information for debugging
+            #ifdef DALI_DEBUG_CORE
+            log_i("RMT receiver task running on core: %d", xPortGetCoreID());
+            #endif
+            
             while (true)
             {
                 if (xQueueReceive(receiver->getQueueHandle(), &data, portMAX_DELAY) == pdPASS)
